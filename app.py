@@ -1,13 +1,19 @@
 import streamlit as st
+import time
 from recommender import recommend_recipes, load_moods
-# Assuming db.py for save_rating – import if needed
-from db import save_rating  # From Day 4
+# Database utilities
+from db import save_rating, init_db, get_top_faves, log_event
 
 # Initialize session state for persistence
 if 'ratings' not in st.session_state:
     st.session_state.ratings = {}  # Dict: {rec_index: rating}
 
 st.set_page_config(page_title="Mood Munch", layout="wide")
+# Ensure DB is ready and log session start once per run
+if 'db_initialized' not in st.session_state:
+    init_db()
+    st.session_state.db_initialized = True
+    log_event('session_start', {"source": "app"})
 st.title("🍲 Mood Munch: Fridge to Feast with Feels")
 
 # Inputs (unchanged)
@@ -26,7 +32,15 @@ if st.button("Get Recipes!"):
         ingredients = ['rice', 'eggs']
     
     with st.spinner("Cooking up mood-matched recs..."):
+        t0 = time.perf_counter()
         recs = recommend_recipes(ingredients, mood, diet)
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+        log_event('get_recipes', {
+            "num_ingredients": len(ingredients),
+            "mood": mood,
+            "diet": diet,
+            "duration_ms": duration_ms,
+        })
     
     if recs.empty:
         st.info("No perfect matches—try looser ingredients or fewer filters!")
@@ -44,7 +58,8 @@ if st.button("Get Recipes!"):
                 st.session_state.ratings[key] = rating  # Save on change
             with col_save:
                 if st.button(f"Save #{i}", key=f"save_{i}"):
-                    save_rating(row['title'], rating, mood)  # From db.py
+                    save_rating(row['title'], rating, mood)
+                    log_event('save_rating', {"title": row['title'], "rating": rating, "mood": mood})
                     st.success(f"Saved {row['title']} ({rating}/5) for {mood} moods!")
             
             # Rec details (unchanged)
