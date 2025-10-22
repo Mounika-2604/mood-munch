@@ -24,3 +24,9 @@ def get_top_faves(mood=None):
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df.sort_values('avg_score', ascending=False).head(5)
+# At end, add:
+def get_ratings_df():
+    conn = sqlite3.connect('faves.db')
+    df = pd.read_sql_query("SELECT title, score, mood FROM ratings", conn)
+    conn.close()
+    return df

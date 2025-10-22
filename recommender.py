@@ -4,6 +4,39 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# Commented ML (skip for now – uncomment after install)
+# from surprise import Dataset, Reader, KNNBasic
+# from surprise.model_selection import train_test_split
+# from io import StringIO
+# import sqlite3  # For get_ratings_df
+
+# def get_ratings_df():
+#     conn = sqlite3.connect('faves.db')
+#     df = pd.read_sql_query("SELECT title, score, mood FROM ratings", conn)
+#     conn.close()
+#     return df
+
+# def get_personalized_recs(df, user_mood, top_n=3):
+#     ratings_df = get_ratings_df()
+#     if ratings_df.empty:
+#         return pd.DataFrame()
+#     reader = Reader(rating_scale=(1, 5))
+#     data = Dataset.load_from_df(ratings_df[['title', 'title', 'score']], reader)
+#     trainset = train_test_split(data, test_size=0.25)[0]
+#     sim_options = {'name': 'cosine', 'user_based': False}
+#     model = KNNBasic(sim_options=sim_options)
+#     model.fit(trainset)
+#     mood_ratings = ratings_df[ratings_df['mood'] == user_mood]
+#     if mood_ratings.empty:
+#         return pd.DataFrame()
+#     first_title = mood_ratings['title'].iloc[0]
+#     predictions = [model.predict(first_title, title) for title in mood_ratings['title'].unique()]
+#     top_preds = sorted(predictions, key=lambda x: x.est, reverse=True)[:top_n]
+#     rec_titles = [pred.iid for pred in top_preds]
+#     recs = df[df['title'].isin(rec_titles)].head(top_n)[['title', 'instructions_str', 'mood_tip']].copy()
+#     recs['predicted_rating'] = [p.est for p in top_preds]
+#     return recs
+
 def parse_ingredients(sections_str):
     """Extract ingredient names—JSON + regex fallback."""
     if pd.isna(sections_str) or not sections_str:
